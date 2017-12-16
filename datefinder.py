@@ -1,6 +1,6 @@
 import copy
 import logging
-import regex as re
+import re2 as re
 from dateutil import tz, parser
 
 
@@ -35,21 +35,18 @@ class DateFinder(object):
     ## Time pattern is used independently, so specified here.
     TIME_PATTERN = """
     (?P<time>
-        ## Captures in format XX:YY(:ZZ) (PM) (EST)
         (
             (?P<hours>\d{{1,2}})
             \:
             (?P<minutes>\d{{1,2}})
-            (\:(?<seconds>\d{{1,2}}))?
-            ([\.\,](?<microseconds>\d{{1,6}}))?
+            (\:(?P<seconds>\d{{1,2}}))?
+            ([\.\,](?P<microseconds>\d{{1,6}}))?
             \s*
             (?P<time_periods>{time_periods})?
             \s*
             (?P<timezones>{timezones})?
         )
         |
-        ## Captures in format 11 AM (EST)
-        ## Note with single digit capture requires time period
         (
             (?P<hours>\d{{1,2}})
             \s*
@@ -68,7 +65,6 @@ class DateFinder(object):
         (
             {time}
             |
-            ## Grab any digits
             (?P<digits_modifier>{digits_modifier})
             |
             (?P<digits>{digits})
@@ -77,15 +73,9 @@ class DateFinder(object):
             |
             (?P<months>{months})
             |
-            ## Delimiters, ie Tuesday[,] July 18 or 6[/]17[/]2008
-            ## as well as whitespace
             (?P<delimiters>{delimiters})
             |
-            ## These tokens could be in phrases that dateutil does not yet recognize
-            ## Some are US Centric
             (?P<extra_tokens>{extra_tokens})
-        ## We need at least three items to match for minimal datetime parsing
-        ## ie 10pm
         ){{3,}}
     )
     """
@@ -158,9 +148,11 @@ class DateFinder(object):
         :return: date_string, tz_string
         """
         # add timezones to replace
+        # import pdb; pdb.set_trace()
         cloned_replacements = copy.copy(self.REPLACEMENTS)  # don't mutate
-        for tz_string in captures.get('timezones', []):
-            cloned_replacements.update({tz_string: ' '})
+        if captures.get('timezones') is not None:
+            for tz_string in captures.get('timezones', []):
+                cloned_replacements.update({tz_string: ' '})
 
         date_string = date_string.lower()
         for key, replacement in cloned_replacements.items():
@@ -170,9 +162,12 @@ class DateFinder(object):
             # 2. match ' to'
             # 3. match ' to '
             # but never match r'(\s|)to(\s|)' which would make 'october' > 'ocber'
-            date_string = re.sub(r'(^|\s)' + key + '(\s|$)', replacement, date_string, flags=re.IGNORECASE)
+            date_string = re.sub(r'(?i)(^|\s)' + key + '(\s|$)', replacement, date_string)
 
-        return date_string, self._pop_tz_string(sorted(captures.get('timezones', [])))
+        poptzstring = ''
+        if captures.get('timezones') is not None:
+            poptzstring = self._pop_tz_string(sorted(captures.get('timezones', [])))
+        return date_string, poptzstring
 
     def _pop_tz_string(self, list_of_timezones):
         try:
@@ -211,6 +206,9 @@ class DateFinder(object):
             ## < 3 tends to be garbage
             if len(date_string) < 3:
                 return None
+        except OverflowError:
+            as_dt = None
+            return as_dt
 
             try:
                 logger.debug('Parsing {0} with dateutil'.format(date_string))
@@ -220,7 +218,8 @@ class DateFinder(object):
                 as_dt = None
             if tz_string:
                 as_dt = self._add_tzinfo(as_dt, tz_string)
-        return as_dt
+
+            return as_dt
 
     def extract_date_strings(self, text, strict=False):
         """
@@ -233,9 +232,10 @@ class DateFinder(object):
         for match in self.DATE_REGEX.finditer(text):
             match_str = match.group(0)
             indices = match.span(0)
+            # import pdb; pdb.set_trace()
 
             ## Get individual group matches
-            captures = match.capturesdict()
+            captures = match.groupdict()#capturesdict()
             time = captures.get('time')
             digits = captures.get('digits')
             digits_modifiers = captures.get('digits_modifiers')
@@ -249,18 +249,17 @@ class DateFinder(object):
             if strict:
                 complete = False
                 ## 12-05-2015
-                if len(digits) == 3:
+                if (digits is not None) and len(digits) == 3:
                     complete = True
                 ## 19 February 2013 year 09:10
-                elif (len(months) == 1) and (len(digits) == 2):
+                elif ((months is not None) and (len(months) == 1)) and ((digits is not None) and (len(digits) == 2)):
                     complete = True
-
                 if not complete:
                     continue
 
             ## sanitize date string
             ## replace unhelpful whitespace characters with single whitespace
-            match_str = re.sub('[\n\t\s\xa0]+', ' ', match_str)
+            match_str = re.sub('[\n\t\s]+', ' ', match_str)
             match_str = match_str.strip(self.STRIP_CHARS)
 
             ## Save sanitized source string
@@ -301,3 +300,9 @@ def find_dates(
     """
     date_finder = DateFinder(base_date=base_date)
     return date_finder.find_dates(text, source=source, index=index, strict=strict)
+
+if __name__ == '__main__':
+    from datetime import datetime
+    import pytz
+    print(find_dates("2017-02-03T09:04:08.001Z"))
+    print(find_dates("2017-02-03T09:04:08.001Z") == datetime(2017, 2, 3, 9, 4, 8, 1000, tzinfo=pytz.utc))
