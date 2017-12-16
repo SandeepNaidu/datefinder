@@ -1,4 +1,4 @@
-datefinder - extract dates from text
+datefinder - extract dates from text using RE2
 ====================================
 
 .. image:: https://img.shields.io/travis/akoumjian/datefinder/master.svg
@@ -28,11 +28,14 @@ to the datetime object.
 
 Installation
 ------------
-
+ Install re2 from https://github.com/google/re2
+ Install pyre2 from https://github.com/axiak/pyre2 (you can use a variant fork of pyre2 but the build and capability nuances are upto your study. Will be delighted to hear if there is a value addition using some other fork than axiak.)
+   
 .. code-block:: sh
-
-    pip install datefinder
-
+    $git clone git://github.com/SandeepNaidu/datefinder.git
+    $ cd datefinder.git
+    $ python setup.py install
+    
 
 How to Use
 ----------
@@ -62,9 +65,16 @@ How to Use
     2017-01-04 20:00:00
     2005-01-15 00:00:00
 
+Thanks
+------
+Thanks to Google, Facebook, @axaik and @akoumjian for their code on which these changes stand.
 
 Support
 -------
 
-You can talk to us on `Gitter <https://gitter.im/datefinder/Lobby>`_ or just submit an issue on `github <https://github.com/akoumjian/datefinder/issues/>`_. 
+`github <https://github.com/SandeepNaidu/datefinder/issues/>`_. 
+
+Disclaimer
+----------
+Authors do not have any liability directly or indirectly to any kind of loss incurred from the use of the software directly or indirectly. Use it at your own risk.
 
