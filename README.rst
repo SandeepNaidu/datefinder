@@ -1,23 +1,6 @@
 datefinder - extract dates from text using RE2
 ====================================
 
-.. image:: https://img.shields.io/travis/akoumjian/datefinder/master.svg
-    :target: https://travis-ci.org/akoumjian/datefinder
-    :alt: travis build status
-
-.. image:: https://img.shields.io/pypi/dm/datefinder.svg
-    :target: https://pypi.python.org/pypi/datefinder/
-    :alt: pypi downloads per day
-
-.. image:: https://img.shields.io/pypi/v/datefinder.svg
-    :target: https://pypi.python.org/pypi/datefinder
-    :alt: pypi version
-
-.. image:: https://img.shields.io/gitter/room/nwjs/nw.js.svg
-    :target: https://gitter.im/datefinder/Lobby
-    :alt: gitter chat
-
-
 A python module for locating dates inside text. Use this package to extract all sorts 
 of date like strings from a document and turn them into datetime objects.
 
