@@ -29,11 +29,11 @@ setup(
     long_description=long_description,
 
     # The project's main homepage.
-    url='https://github.com/akoumjian/datefinder',
+    url='https://github.com/SandeepNaidu/datefinder',
 
     # Author details
-    author='Alec Koumjian',
-    author_email='akoumjian@gmail.com',
+    author='Sandeep',
+    author_email='spamidiparthi@gmail.com',
 
     # Choose your license
     license='MIT',
@@ -68,7 +68,7 @@ setup(
     ],
 
     # What does your project relate to?
-    keywords='datetime parser nlp',
+    keywords='datefinder datetime parser nlp',
 
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
